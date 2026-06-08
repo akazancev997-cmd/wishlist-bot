@@ -215,6 +215,18 @@ async def payment_success():
     return tmpl.render()
 
 
+@app.get("/robots.txt", response_class=HTMLResponse)
+async def robots():
+    tmpl = templates_env.get_template("robots.txt")
+    return tmpl.render()
+
+
+@app.get("/sitemap.xml", response_class=HTMLResponse)
+async def sitemap():
+    tmpl = templates_env.get_template("sitemap.xml")
+    return tmpl.render()
+
+
 @app.get("/privacy", response_class=HTMLResponse)
 async def privacy():
     tmpl = templates_env.get_template("privacy.html")
@@ -224,4 +236,20 @@ async def privacy():
 @app.get("/terms", response_class=HTMLResponse)
 async def terms():
     tmpl = templates_env.get_template("terms.html")
+    return tmpl.render()
+
+
+BLOG_ARTICLES = {
+    "kak-sozdat-vishlist-dlya-dnya-rozhdeniya": "blog/kak-sozdat-vishlist-dlya-dnya-rozhdeniya.html",
+    "chto-podarit-na-noviy-god": "blog/chto-podarit-na-noviy-god.html",
+    "svadebniy-vishlist-dlya-gostey": "blog/svadebniy-vishlist-dlya-gostey.html",
+}
+
+
+@app.get("/blog/{slug}", response_class=HTMLResponse)
+async def blog_article(slug: str):
+    template = BLOG_ARTICLES.get(slug)
+    if not template:
+        return HTMLResponse("<h1>Статья не найдена</h1><a href='/'>На главную</a>", status_code=404)
+    tmpl = templates_env.get_template(template)
     return tmpl.render()
