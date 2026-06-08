@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if wishlist %}{{ wishlist.title }} — Вишлист{% else %}Вишлист не найден{% endif %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            line-height: 1.6;
+        }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .header h1 { font-size: 1.8em; margin-bottom: 5px; }
+        .header .occasion { opacity: 0.9; font-size: 1em; }
+        .header .count { margin-top: 15px; font-size: 0.9em; opacity: 0.8; }
+        .item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .item.reserved { opacity: 0.6; background: #f9f9f9; }
+        .item-header { display: flex; justify-content: space-between; align-items: center; }
+        .item-title { font-size: 1.1em; font-weight: 600; }
+        .item-price { color: #667eea; font-weight: bold; }
+        .item-desc { color: #666; font-size: 0.9em; margin-top: 5px; }
+        .item-url { display: block; margin-top: 5px; font-size: 0.85em; color: #667eea; }
+        .item-priority { color: #ffa41c; font-size: 0.9em; margin-top: 3px; }
+        .reserve-btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .reserve-btn:hover { background: #5a6fd6; }
+        .reserve-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .reserved-badge {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 25px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 50px;
+            font-size: 0.9em;
+        }
+        .name-input {
+            margin-top: 10px;
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 0.95em;
+            width: 100%;
+            max-width: 250px;
+            outline: none;
+        }
+        .name-input:focus { border-color: #667eea; }
+        .empty { text-align: center; padding: 40px; color: #999; }
+        .error { text-align: center; padding: 60px 20px; }
+        .error h2 { color: #e74c3c; margin-bottom: 10px; }
+        .footer { text-align: center; margin-top: 20px; color: #999; font-size: 0.85em; }
+        .toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: #2e7d32; color: white; padding: 12px 25px;
+            border-radius: 10px; font-size: 0.95em;
+            display: none; z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if wishlist %}
+            <div class="header">
+                <h1>🎁 {{ wishlist.title }}</h1>
+                <div class="occasion">{{ wishlist.occasion }}</div>
+                <div class="count">{{ wishlist.items|length }} желаний</div>
+            </div>
+
+            <form id="reserveForm" style="display:none;">
+                <input type="hidden" id="shareCode" value="{{ wishlist.share_code }}">
+            </form>
+
+            {% if wishlist.items %}
+                {% for item in wishlist.items %}
+                    <div class="item {% if item.is_reserved %}reserved{% endif %}" id="item-{{ item.id }}">
+                        <div class="item-header">
+                            <div class="item-title">{{ item.title }}</div>
+                            {% if item.price %}
+                                <div class="item-price">{{ item.price }} {{ item.currency }}</div>
+                            {% endif %}
+                        </div>
+                        {% if item.description %}
+                            <div class="item-desc">{{ item.description }}</div>
+                        {% endif %}
+                        <div class="item-priority">{% for i in range(item.priority) %}⭐{% endfor %}</div>
+                        {% if item.url %}
+                            <a class="item-url" href="{{ item.url }}" target="_blank">🔗 {{ item.url[:50] }}{% if item.url|length > 50 %}...{% endif %}</a>
+                        {% endif %}
+
+                        {% if item.is_reserved %}
+                            <div class="reserved-badge">🔒 Уже дарят</div>
+                        {% else %}
+                            <div>
+                                <input class="name-input" id="name-{{ item.id }}" type="text" placeholder="Ваше имя (необязательно)">
+                                <button class="reserve-btn" onclick="reserveItem({{ item.id }})">🎁 Хочу подарить!</button>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">😔 В этом вишлисте пока нет желаний</div>
+            {% endif %}
+
+            <div class="footer">
+                Сделано с ❤️ в <a href="https://t.me/your_bot_username" style="color:#667eea;">WishlistBot</a>
+            </div>
+        {% else %}
+            <div class="error">
+                <h2>😔 Вишлист не найден</h2>
+                <p>Возможно, он был удалён или ссылка неверна.</p>
+                <p style="margin-top:20px">
+                    <a href="https://t.me/your_bot_username"
+                       style="display:inline-block;padding:12px 30px;background:#667eea;color:white;border-radius:50px;text-decoration:none;">
+                        🚀 Открыть WishlistBot
+                    </a>
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        async function reserveItem(itemId) {
+            const nameInput = document.getElementById('name-' + itemId);
+            const name = nameInput ? nameInput.value.trim() || 'Аноним' : 'Аноним';
+            const shareCode = document.getElementById('shareCode').value;
+
+            try {
+                const resp = await fetch(`/wishlist/${shareCode}/reserve/${itemId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name }),
+                });
+                if (!resp.ok) {
+                    const data = await resp.json();
+                    showToast('❌ ' + (data.detail || 'Ошибка'));
+                    return;
+                }
+
+                const itemDiv = document.getElementById('item-' + itemId);
+                itemDiv.classList.add('reserved');
+                const btnDiv = itemDiv.querySelector('div:last-child');
+                btnDiv.innerHTML = '<div class="reserved-badge">🔒 Уже дарят</div>';
+                showToast('✅ Спасибо! Владелец узнает о подарке');
+            } catch (e) {
+                showToast('❌ Ошибка соединения');
+            }
+        }
+    </script>
+</body>
+</html>
