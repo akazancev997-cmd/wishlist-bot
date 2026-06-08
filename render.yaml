@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: wishlist-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn web:app --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: WEBHOOK_URL
+        value: https://wishlist-bot.onrender.com
+      - key: YOOKASSA_SHOP_ID
+        sync: false
+      - key: YOOKASSA_SECRET_KEY
+        sync: false
