@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WishlistBot — Список желаний в Telegram</title>
+    <title>WishlistBot — Список желаний в Telegram. Создай вишлист за 1 минуту</title>
+    <meta name="description" content="🎁 WishlistBot — Telegram бот для создания вишлистов. Делитесь списками желаний с друзьями, получайте только нужные подарки на ДР, свадьбу, НГ. Бесплатно + Премиум.">
+    <meta name="keywords" content="вишлист, список желаний, телеграм бот подарков, что подарить, пожелания на день рождения, список подарков, wishlist telegram">
+    <meta property="og:title" content="WishlistBot — Вишлисты в Telegram">
+    <meta property="og:description" content="Создай список желаний, поделись с друзьями и получай только то, что хочешь">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:url" content="https://wishlist-bot.onrender.com">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://wishlist-bot.onrender.com">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -95,6 +103,31 @@
             margin: 0 auto 15px;
             font-weight: bold;
         }
+        .blog { margin-bottom: 40px; }
+        .blog h2 { text-align: center; margin-bottom: 30px; }
+        .blog-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .blog-card h3 { color: #667eea; margin-bottom: 8px; }
+        .blog-card p { color: #666; font-size: 0.95em; }
+        .faq { margin-bottom: 40px; }
+        .faq h2 { text-align: center; margin-bottom: 30px; }
+        .faq-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px 25px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .faq-item h4 { color: #1a1a2e; margin-bottom: 5px; cursor: pointer; }
+        .faq-item h4:after { content: " ▼"; font-size: 0.7em; color: #999; }
+        .faq-item p { color: #666; font-size: 0.95em; display: none; margin-top: 8px; }
+        .faq-item.open p { display: block; }
+        .faq-item.open h4:after { content: " ▲"; }
         footer { text-align: center; padding: 30px; color: #999; font-size: 0.9em; }
         footer a { color: #667eea; text-decoration: none; }
         @media (max-width: 600px) {
@@ -156,10 +189,58 @@
                 <h3>💰 С ценами</h3>
                 <p>Указывай примерную цену, чтобы друзьям было проще выбрать</p>
             </div>
+            <div class="feature">
+                <h3>👥 Приглашай друзей</h3>
+                <p>За каждого приглашённого друга получай +7 дней Премиум бесплатно</p>
+            </div>
+            <div class="feature">
+                <h3>⭐ Премиум</h3>
+                <p>Безлимитные вишлисты, импорт с Ozon/WB, аналитика — 249₽/мес</p>
+            </div>
+        </div>
+
+        <div class="blog">
+            <h2>📝 Полезные статьи</h2>
+            <div class="blog-card">
+                <h3>🎂 Что подарить на день рождения: список идей на любой бюджет</h3>
+                <p>День рождения близкого человека — всегда вызов. Мы собрали идеи подарков от 500 до 50 000 ₽: от тёплых носков до айфона. Создай вишлист в WishlistBot и отправь друзьям — они точно не прогадают!</p>
+            </div>
+            <div class="blog-card">
+                <h3>💍 Как организовать свадебный вишлист для гостей</h3>
+                <p>На свадьбу часто дарят то, что не нужно. Избежать этого просто: создайте общий вишлист для молодожёнов, добавьте желания с ссылками на магазины и разошлите гостям ссылку. Удобно и современно!</p>
+            </div>
+            <div class="blog-card">
+                <h3>🎄 Новогодний вишлист: как намекнуть Деду Морозу</h3>
+                <p>Новый год — время чудес и подарков. Не мучай близких вопросом «что тебе подарить» — создай новогодний вишлист в Telegram и поделись ссылкой. Все будут рады!</p>
+            </div>
+        </div>
+
+        <div class="faq">
+            <h2>❓ Частые вопросы</h2>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <h4>Это бесплатно?</h4>
+                <p>Да! Можно создать 1 вишлист до 10 желаний бесплатно. Премиум (безлимит) — 249 ₽/мес.</p>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <h4>Увидят ли друзья, кто что дарит?</h4>
+                <p>Нет! Когда друг резервирует подарок, вы видите только «Зарезервировано», но не имя. Сюрприз сохраняется.</p>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <h4>Как получать Премиум бесплатно?</h4>
+                <p>Приглашай друзей по своей ссылке. За каждого друга — 7 дней Премиум. 5 друзей = месяц бесплатного Премиум!</p>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <h4>Можно ли добавить товары с Ozon или Wildberries?</h4>
+                <p>В Премиум-версии можно вставить ссылку на любой товар. Автоматический импорт скоро появится.</p>
+            </div>
+            <div class="faq-item" onclick="this.classList.toggle('open')">
+                <h4>Как удалить свой аккаунт?</h4>
+                <p>Напиши /delete в боте, и все твои данные будут удалены навсегда.</p>
+            </div>
         </div>
 
         <div class="pricing" id="pricing">
-            <h2>Тарифы</h2>
+            <h2>Выбери тариф</h2>
             <div class="plans">
                 <div class="plan">
                     <h3>🆓 Бесплатный</h3>
@@ -189,8 +270,15 @@
 
         <footer>
             <p><a href="/privacy">Политика конфиденциальности</a> • <a href="/terms">Условия использования</a></p>
-            <p style="margin-top:10px">© 2024 WishlistBot</p>
+            <p style="margin-top:10px">© 2026 WishlistBot. Сделано с ❤️</p>
         </footer>
     </div>
+
+    <script>
+        // FAQ accordion
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', () => item.classList.toggle('open'));
+        });
+    </script>
 </body>
 </html>
