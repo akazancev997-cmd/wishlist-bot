@@ -718,6 +718,7 @@ def setup_handlers(app: Application):
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True,
+        per_message=True,
     )
 
     # Conversation for adding item
@@ -730,6 +731,7 @@ def setup_handlers(app: Application):
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True,
+        per_message=True,
     )
 
     app.add_handler(CommandHandler("start", start))
