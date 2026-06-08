@@ -27,11 +27,16 @@ class User(Base):
     last_name = Column(String(128), nullable=True)
     is_premium = Column(Boolean, default=False)
     premium_until = Column(DateTime, nullable=True)
+    referral_code = Column(String(32), unique=True, nullable=True, index=True)
+    referred_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    referral_bonus_days = Column(Integer, default=0)
+    referrals_count = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     wishlists = relationship("Wishlist", back_populates="user", cascade="all, delete-orphan")
     subscriptions = relationship("Subscription", back_populates="user", cascade="all, delete-orphan")
+    referrals = relationship("User", backref="referred_by", remote_side=[id], foreign_keys=[referred_by_id])
 
 
 class Wishlist(Base):

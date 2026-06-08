@@ -5,6 +5,7 @@ def main_menu():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📝 Создать вишлист", callback_data="create_wishlist")],
         [InlineKeyboardButton("📋 Мои вишлисты", callback_data="list_wishlists")],
+        [InlineKeyboardButton("👥 Пригласить друзей", callback_data="invite")],
         [InlineKeyboardButton("⭐ Премиум", callback_data="premium")],
         [InlineKeyboardButton("❓ Помощь", callback_data="help")],
     ])

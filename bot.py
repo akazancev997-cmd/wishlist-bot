@@ -22,6 +22,21 @@ TITLE, DESCRIPTION, OCCASION, ITEM_TITLE, ITEM_DESC, ITEM_PRICE, ITEM_URL = rang
 EDIT_TITLE, EDIT_DESC = range(7, 9)
 
 
+import secrets
+
+
+async def _generate_unique_code() -> str:
+    async with get_session() as session:
+        from sqlalchemy import select
+        while True:
+            code = secrets.token_hex(4)
+            result = await session.execute(
+                select(User).where(User.referral_code == code)
+            )
+            if not result.scalars().first():
+                return code
+
+
 async def _get_or_create_user(telegram_id: int, **kwargs) -> User:
     async with get_session() as session:
         from sqlalchemy import select
@@ -35,7 +50,8 @@ async def _get_or_create_user(telegram_id: int, **kwargs) -> User:
             await session.commit()
             await session.refresh(user)
             return user
-        user = User(telegram_id=telegram_id, **kwargs)
+        referral_code = await _generate_unique_code()
+        user = User(telegram_id=telegram_id, referral_code=referral_code, **kwargs)
         session.add(user)
         await session.commit()
         await session.refresh(user)
@@ -109,14 +125,51 @@ def _get_item_display(item: WishlistItem) -> str:
 
 async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    params = ctx.args or []
+    referrer_code = params[0] if params else None
+
+    tg_id = user.id
+    existing = await _get_user_by_telegram_id(tg_id)
+
+    if existing:
+        await update.message.reply_text(
+            messages.START,
+            reply_markup=keyboards.main_menu(),
+            parse_mode="HTML",
+        )
+        return
+
     await _get_or_create_user(
-        user.id,
+        tg_id,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
     )
+
+    # Handle referral
+    if referrer_code:
+        async with get_session() as session:
+            from sqlalchemy import select
+            result = await session.execute(
+                select(User).where(User.referral_code == referrer_code)
+            )
+            referrer = result.scalars().first()
+            if referrer and referrer.telegram_id != tg_id:
+                new_user = await _get_user_by_telegram_id(tg_id)
+                if new_user:
+                    new_user.referred_by_id = referrer.id
+                    referrer.referrals_count = (referrer.referrals_count or 0) + 1
+                    referrer.referral_bonus_days = (referrer.referral_bonus_days or 0) + 7
+                    new_user.referral_bonus_days = (new_user.referral_bonus_days or 0) + 7
+                    await session.commit()
+
+    if referrer_code:
+        start_text = messages.START_WITH_REFERRAL
+    else:
+        start_text = messages.START
+
     await update.message.reply_text(
-        messages.START,
+        start_text,
         reply_markup=keyboards.main_menu(),
         parse_mode="HTML",
     )
@@ -124,6 +177,25 @@ async def start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 async def help_command(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(messages.HELP, parse_mode="HTML")
+
+
+async def invite_command(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    user = await _get_user_by_telegram_id(user_id)
+    if not user:
+        await update.message.reply_text("Сначала напиши /start")
+        return
+
+    bot_username = (await ctx.bot.get_me()).username
+    link = f"https://t.me/{bot_username}?start={user.referral_code}"
+    count = user.referrals_count or 0
+    bonus = user.referral_bonus_days or 0
+
+    await update.message.reply_text(
+        messages.REFERRAL_INFO.format(link=link, count=count, bonus_days=bonus),
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
 
 
 async def premium(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -652,6 +724,9 @@ async def callback_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await create_wishlist_start(update, ctx)
     elif data == "list_wishlists":
         await list_wishlists(update, ctx)
+    elif data == "invite":
+        await query.answer()
+        await invite_command(update, ctx)
     elif data == "premium":
         await premium(update, ctx)
     elif data == "help":
@@ -695,7 +770,7 @@ async def handle_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Handle text messages that don't match active conversation."""
     if update.message and update.message.text:
         text = update.message.text.strip().lower()
-        if text in ("/start", "/help", "/lists", "/create", "/premium", "/share"):
+        if text in ("/start", "/help", "/lists", "/create", "/premium", "/share", "/invite"):
             return
         await update.message.reply_text(
             "Используй команды из меню или кнопки ниже.",
@@ -738,6 +813,7 @@ def setup_handlers(app: Application):
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("premium", premium))
     app.add_handler(CommandHandler("lists", list_wishlists))
+    app.add_handler(CommandHandler("invite", invite_command))
     app.add_handler(create_conv)
     app.add_handler(add_item_conv)
     app.add_handler(CallbackQueryHandler(callback_handler))
